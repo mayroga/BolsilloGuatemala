@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BolsilloUruguay</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <main class="container">
+        <h1 id="secretClicker">BolsilloUruguay</h1>
+        <p class="subtitle">Ahorro y soluciones prácticas al instante</p>
+        <p class="pay-desc">Acceso ilimitado por <strong>$2.99 USD</strong>.</p>
+        <button class="pay-btn" onclick="pagarStripe()">Pagar Acceso ($2.99)</button>
+        
+        <!-- AVISO LEGAL VISIBLE EN EL PAYWALL -->
+        <div style="margin-top: 25px; padding: 12px; font-size: 11px; color: #555; text-align: left; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; line-height: 1.4;">
+            <p style="margin: 0;"><strong>Aviso Legal y Descargo de Responsabilidad (MAY ROGA LLC):</strong><br>
+            BolsilloUruguay es un servicio privado de asesoría e información general operado por MAY ROGA LLC. No somos una entidad gubernamental ni representamos a ningún organismo del Estado. En salud, la plataforma NO emite diagnósticos ni recetas. MAY ROGA LLC no se hace responsable por el uso que el usuario dé a la información.</p>
+        </div>
+    </main>
+
+    <div id="devModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h3>Acceso Desarrollador</h3>
+            <input type="text" id="devUser" placeholder="Usuario"><br>
+            <input type="password" id="devPass" placeholder="Contraseña"><br>
+            <button onclick="loginDev()">Entrar</button>
+            <button onclick="cerrarModal()">Cancelar</button>
+        </div>
+    </div>
+
+    <script>
+        let clicks = 0;
+        document.getElementById("secretClicker").addEventListener("click", () => {
+            clicks++;
+            if (clicks === 5) {
+                document.getElementById("devModal").style.display = "block";
+                clicks = 0;
+            }
+        });
+        function cerrarModal() { document.getElementById("devModal").style.display = "none"; }
+        async function pagarStripe() {
+            const res = await fetch("/crear-checkout", { method: "POST" });
+            const data = await res.json();
+            if (data.url) window.location.href = data.url;
+        }
+        async function loginDev() {
+            const usuario = document.getElementById("devUser").value;
+            const clave = document.getElementById("devPass").value;
+            const res = await fetch("/login-dev", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ usuario, clave })
+            });
+            const data = await res.json();
+            if (data.success) window.location.reload();
+            else alert("Credenciales incorrectas");
+        }
+    </script>
+</body>
+</html>

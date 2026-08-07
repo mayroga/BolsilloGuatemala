@@ -1,0 +1,27 @@
+body { font-family: Arial, sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; height: 100vh; box-sizing: border-box; }
+.container { background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; }
+h1 { font-size: 24px; color: #1a365d; margin-bottom: 5px; }
+.subtitle { font-size: 14px; color: #666; margin-bottom: 20px; }
+.permiso-box { background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 20px; }
+.permiso-box p { font-size: 14px; color: #333; margin-bottom: 10px; }
+.search-box { display: flex; flex-direction: column; gap: 10px; }
+input[type="text"], input[type="password"] { padding: 12px; font-size: 15px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%; box-sizing: border-box; }
+input:focus { border-color: #2563eb; }
+button, .pay-btn { padding: 12px; font-size: 15px; background-color: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
+button:hover, .pay-btn:hover { background-color: #1d4ed8; }
+.mic-btn { background-color: #d97706; }
+.mic-btn:hover { background-color: #b45309; }
+
+.result-box { margin-top: 15px; padding: 12px; background: #f8fafc; border-left: 4px solid #2563eb; border-radius: 4px; text-align: left; display: flex; flex-direction: column; gap: 10px; }
+.result-scroll { max-height: 160px; overflow-y: auto; padding-right: 5px; display: flex; flex-direction: column; gap: 8px; }
+.result-scroll p { font-size: 14px; line-height: 1.4; margin: 0; color: #1e293b; }
+
+/* Botones directos a tiendas y Google Maps */
+.links-container { display: flex; flex-direction: column; gap: 6px; margin-top: 5px; }
+.direct-link-btn { display: block; background-color: #0284c7; color: white; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: bold; text-align: center; }
+.direct-link-btn:hover { background-color: #0369a1; }
+
+.voice-read-btn { background-color: #0d9488; }
+.voice-read-btn:hover { background-color: #0f766e; }
+.wa-btn { background-color: #25d366; }
+.wa-btn:hover { background-color: #1ebd59; }

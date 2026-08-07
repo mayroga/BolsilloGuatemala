@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BolsilloUruguay</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <main class="container">
+        <h1 id="mainTitle">BolsilloUruguay</h1>
+        <p class="subtitle">{{ saludo_dinamico }}</p>
+        
+        <div id="permisoBox" class="permiso-box">
+            <p>Activa la ubicación para calcular opciones cercanas exactas a tu bolsillo y región.</p>
+            <button onclick="activarGPS()">Aceptar</button>
+        </div>
+
+        <div class="search-box" id="searchBox" style="display:none;">
+            <input type="text" id="userInput" placeholder="Ej: ¿Dónde comprar más barato o hacer un trámite?" autocomplete="off">
+            
+            <button id="micBtn" class="mic-btn" onmousedown="iniciarEscucha()" onmouseup="detenerEscucha()" ontouchstart="iniciarEscucha()" ontouchend="detenerEscucha()">
+                🎙️ Mantén presionado para hablar
+            </button>
+
+            <button onclick="enviarConsulta()">Consultar</button>
+        </div>
+
+        <!-- Pantalla de resultados inteligente y completa -->
+        <div id="resultado" class="result-box" style="display: none;">
+            <div class="result-scroll">
+                <p id="textoRespuesta" style="white-space: pre-line;"></p>
+                <!-- Contenedor para múltiples botones de opciones y mapas -->
+                <div id="linksContainer" class="links-container"></div>
+            </div>
+            <button id="leerVozBtn" class="voice-read-btn" onclick="leerRespuestaEnVozAlta()">🔊 Escuchar respuesta</button>
+            <button id="whatsappBtn" class="wa-btn" onclick="compartirWhatsApp()">Compartir por WhatsApp</button>
+        </div>
+    </main>
+
+    <script>
+        let userLat = null;
+        let userLon = null;
+        let recognition = null;
+
+        function activarGPS() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => { userLat = pos.coords.latitude; userLon = pos.coords.longitude; finalizarGPS(); },
+                    (err) => { finalizarGPS(); }
+                );
+            } else { finalizarGPS(); }
+        }
+
+        function finalizarGPS() {
+            document.getElementById("permisoBox").style.display = "none";
+            document.getElementById("searchBox").style.display = "flex";
+            inicializarVoz();
+        }
+
+        function inicializarVoz() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.lang = 'es-UY';
+                recognition.onresult = (e) => {
+                    document.getElementById("userInput").value = e.results[0][0].transcript;
+                    enviarConsulta();
+                };
+            } else {
+                document.getElementById("micBtn").style.display = "none";
+            }
+        }
+
+        function iniciarEscucha() {
+            if (recognition) {
+                try {
+                    document.getElementById("userInput").value = "";
+                    document.getElementById("resultado").style.display = "none";
+                    document.getElementById("micBtn").innerText = "🔴 Escuchando...";
+                    recognition.start();
+                } catch(e) {}
+            }
+        }
+
+        function detenerEscucha() {
+            if (recognition) {
+                try {
+                    recognition.stop();
+                    document.getElementById("micBtn").innerText = "🎙️ Mantén presionado para hablar";
+                } catch(e) {}
+            }
+        }
+
+        async function enviarConsulta() {
+            const inputField = document.getElementById("userInput");
+            const mensaje = inputField.value;
+            if (!mensaje.trim()) return;
+
+            document.getElementById("resultado").style.display = "none";
+            document.getElementById("textoRespuesta").innerText = "";
+            document.getElementById("linksContainer").innerHTML = "";
+
+            const response = await fetch("/consultar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ mensaje, lat: userLat, lon: userLon })
+            });
+
+            const data = await response.json();
+            
+            // Muestra la respuesta completa estructurada paso a paso
+            document.getElementById("textoRespuesta").innerText = data.respuesta;
+
+            // Inserta todos los botones de opciones y mapas correspondientes
+            if (data.botones && data.botones.length > 0) {
+                const linksContainer = document.getElementById("linksContainer");
+                data.botones.forEach(btnInfo => {
+                    const btn = document.createElement("a");
+                    btn.href = btnInfo.url;
+                    btn.target = "_blank";
+                    btn.className = "direct-link-btn";
+                    btn.innerText = btnInfo.texto;
+                    linksContainer.appendChild(btn);
+                });
+            }
+
+            document.getElementById("resultado").style.display = "block";
+            inputField.value = ""; 
+            leerRespuestaEnVozAlta();
+        }
+
+        function leerRespuestaEnVozAlta() {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const texto = document.getElementById("textoRespuesta").innerText;
+                const utterance = new SpeechSynthesisUtterance(texto);
+                utterance.lang = 'es-UY';
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function compartirWhatsApp() {
+            const texto = document.getElementById("textoRespuesta").innerText;
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent("Mira este dato útil y opciones de ahorro:\n\n" + texto)}`, "_blank");
+        }
+    </script>
+</body>
+</html>

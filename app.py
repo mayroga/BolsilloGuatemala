@@ -45,6 +45,42 @@ def verificar_acceso_pagado():
             
     return False
 
+def extraer_lugar_para_mapa(consulta):
+    """
+    Traduce la consulta del usuario a una categoría o lugar físico real de Google Maps
+    para evitar enviar frases de síntomas, dolores o textos largos al mapa.
+    """
+    c = consulta.lower()
+    
+    # Salud y Emergencias
+    if any(k in c for k in ["dolor", "orino", "ardor", "fiebre", "fiebre", "hospital", "clínica", "medico", "médico", "doctor", "emergencia", "salud", "enfermo", "farmacia", "pastilla", "receta"]):
+        if "farmacia" in c:
+            return "farmacia"
+        return "hospital clinica centro de salud"
+    
+    # Trámites y Gobierno en Guatemala
+    if "renap" in c or "dpi" in c or "nacimiento" in c:
+        return "RENAP oficina"
+    if "sat" in c or "calcomania" in c or "nit" in c or "vehiculo" in c:
+        return "SAT agencia tributaria"
+    if "igss" in c or "suspension" in c:
+        return "IGSS clinica hospital"
+    if "pasaporte" in c or "migraciones" in c or "igm" in c:
+        return "IGM pasaportes Guatemala"
+    if "mintrab" in c or "trabajo" in c or "ministerio" in c:
+        return "Ministerio de Trabajo Guatemala"
+    
+    # Economía y Comercio
+    if "mercado" in c or "cenma" in c or "canasta" in c or "comida" in c or "abastos" in c:
+        return "mercado municipal central de abastos"
+    if "gas" in c or "propano" in c or "combustible" in c or "gasolinera" in c:
+        return "gasolinera"
+    if "banco" in c or "brou" in c or "dinero" in c or "pago" in c:
+        return "banco"
+        
+    # Por defecto, si menciona un lugar específico o genérico, limpiamos conectores y usamos palabras clave
+    return "hospital farmacia centro comercial"
+
 @app.route("/")
 def index():
     if verificar_acceso_pagado():
@@ -98,7 +134,10 @@ def consultar():
         return jsonify({"respuesta": f"BolsilloGuatemala - {URL_BASE_OFICIAL}\n\nIndíquenos qué trámite, compra, servicio o gestión desea resolver en Guatemala.", "pausa_voz": True})
 
     historial = session.get("historial", [])
-    query_url = consulta.replace(" ", "+")
+    
+    # LÓGICA CORREGIDA: Extraemos el lugar físico real para Google Maps, nunca los síntomas o texto plano
+    lugar_mapa = extraer_lugar_para_mapa(consulta)
+    query_mapa_url = lugar_mapa.replace(" ", "+")
 
     # PROPOSITO, ALCANCE Y BLINDAJE LEGAL PARA MAY ROGA LLC EN GUATEMALA
     system_instruction = (
@@ -112,7 +151,7 @@ def consultar():
         "5. RUTA HASTA LA PUERTA: Tu objetivo es dar la información que normalmente ocultan o por la que cobran gestores, mostrando 3 pasos claros y un enlace directo a la institución o mapa. Lo que ocurra después de llegar ya depende del cliente y del tercero, sin responsabilidad para la app.\n"
         "REGLAS CRÍTICAS DE VERDAD Y SEGURIDAD LEGAL:\n"
         "1. SOLO DI LA REALIDAD ESTRICTA: Está terminantemente prohibido inventar datos, precios o direcciones falsas. Basate en la realidad institucional y comercial de Guatemala.\n"
-        "2. CERO DIAGNÓSTICOS MÉDICOS: Si preguntan por salud, indica dónde están los centros, hospitales y rangos de precios, pero jamás emitas diagnósticos ni recetes medicamentos.\n"
+        "2. CERO DIAGNÓSTICOS MÉDICOS: Si preguntan por salud, síntomas o dolencias, indica estrictamente dónde están los hospitales o centros asistenciales más cercanos para que sean atendidos por un profesional, jamás emitas diagnósticos ni recetes medicamentos.\n"
         "3. PROHIBIDO FACILITAR ACTIVIDADES ILEGALES: Rechaza categóricamente cualquier solicitud sobre fraudes, evasiones o actos fuera de la ley.\n"
         "4. CERO ASTERISCOS, NEGRITAS O MARKDOWN: Escribe texto plano y conversacional puro para que la lectura de voz sea fluida y humana.\n"
         "5. LENGUAJE DE ASESOR PRUDENTE: Usa frases como 'Sugerencia de asesoría' o 'Le sugerimos'. No actúes como autoridad estatal.\n"
@@ -162,8 +201,9 @@ def consultar():
             "3. Utilice el mapa interactivo para ubicar la oficina, mercado o servicio más próximo."
         )
 
+    # Los botones ahora buscan establecimientos físicos reales y limpios en Google Maps
     botones = [
-        {"texto": f"Buscar '{consulta}' en el mapa", "url": f"https://www.google.com/maps/search/{query_url}/@{lat or 14.6349},{lon or -90.5069},14z"}
+        {"texto": f"Ubicar centros en el mapa", "url": f"https://www.google.com/maps/search/{query_mapa_url}/@{lat or 14.6349},{lon or -90.5069},14z"}
     ]
 
     historial.append({"usuario": consulta, "asesor": cuerpo_respuesta})

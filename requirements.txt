@@ -1,0 +1,6 @@
+flask
+gunicorn
+requests
+stripe
+google-genai
+openai

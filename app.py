@@ -45,6 +45,27 @@ def verificar_acceso_pagado():
             
     return False
 
+def verificar_limite_diario():
+    """
+    Controla que el usuario no pase de 10 consultas al día.
+    Se resetea automáticamente si cambia el día.
+    """
+    if session.get("is_dev"):
+        return True # El modo desarrollador no tiene límite diario
+
+    hoy_str = datetime.utcnow().strftime("%Y-%m-%d")
+    ultimo_dia = session.get("ultimo_dia_consulta")
+    
+    if ultimo_dia != hoy_str:
+        session["ultimo_dia_consulta"] = hoy_str
+        session["consultas_hoy"] = 0
+
+    consultas_actuales = session.get("consultas_hoy", 0)
+    if consultas_actuales >= 10:
+        return False
+        
+    return True
+
 def extraer_lugar_para_mapa(consulta):
     """
     Traduce la consulta del usuario a una categoría o lugar físico real de Google Maps
@@ -53,7 +74,7 @@ def extraer_lugar_para_mapa(consulta):
     c = consulta.lower()
     
     # Salud y Emergencias
-    if any(k in c for k in ["dolor", "orino", "ardor", "fiebre", "fiebre", "hospital", "clínica", "medico", "médico", "doctor", "emergencia", "salud", "enfermo", "farmacia", "pastilla", "receta"]):
+    if any(k in c for k in ["dolor", "orino", "ardor", "fiebre", "hospital", "clínica", "medico", "médico", "doctor", "emergencia", "salud", "enfermo", "farmacia", "pastilla", "receta"]):
         if "farmacia" in c:
             return "farmacia"
         return "hospital clinica centro de salud"
@@ -75,7 +96,7 @@ def extraer_lugar_para_mapa(consulta):
         return "mercado municipal central de abastos"
     if "gas" in c or "propano" in c or "combustible" in c or "gasolinera" in c:
         return "gasolinera"
-    if "banco" in c or "brou" in c or "dinero" in c or "pago" in c:
+    if "banco" in c or "dinero" in c or "pago" in c:
         return "banco"
         
     # Por defecto, si menciona un lugar específico o genérico, limpiamos conectores y usamos palabras clave
@@ -109,6 +130,8 @@ def exito():
     tiempo_expiracion = datetime.utcnow() + timedelta(days=10)
     session["expiracion_pago"] = tiempo_expiracion.isoformat()
     session["historial"] = []
+    session["consultas_hoy"] = 0
+    session["ultimo_dia_consulta"] = datetime.utcnow().strftime("%Y-%m-%d")
     return redirect(URL_BASE_OFICIAL)
 
 @app.route("/login-dev", methods=["POST"])
@@ -125,6 +148,11 @@ def consultar():
     if not verificar_acceso_pagado():
         return jsonify({"respuesta": f"BolsilloGuatemala - {URL_BASE_OFICIAL}\n\nSu acceso de asesoría ha concluido. Le sugerimos renovar su plan para continuar recibiendo orientación."}), 403
 
+    if not verificar_limite_diario():
+        return jsonify({
+            "respuesta": f"BolsilloGuatemala - {URL_BASE_OFICIAL}\n\nHa alcanzado el límite de 10 consultas permitidas para el día de hoy. Le invitamos a continuar mañana aprovechando sus días vigentes de servicio."
+        }), 200
+
     data = request.get_json()
     consulta = data.get("mensaje", "").lower().strip()
     lat = data.get("lat")
@@ -133,9 +161,13 @@ def consultar():
     if not consulta:
         return jsonify({"respuesta": f"BolsilloGuatemala - {URL_BASE_OFICIAL}\n\nIndíquenos qué trámite, compra, servicio o gestión desea resolver en Guatemala.", "pausa_voz": True})
 
+    # Incrementamos el contador de uso diario exitoso
+    if not session.get("is_dev"):
+        session["consultas_hoy"] = session.get("consultas_hoy", 0) + 1
+
     historial = session.get("historial", [])
     
-    # LÓGICA CORREGIDA: Extraemos el lugar físico real para Google Maps, nunca los síntomas o texto plano
+    # LÓGICA: Extraemos el lugar físico real para Google Maps
     lugar_mapa = extraer_lugar_para_mapa(consulta)
     query_mapa_url = lugar_mapa.replace(" ", "+")
 
@@ -201,7 +233,7 @@ def consultar():
             "3. Utilice el mapa interactivo para ubicar la oficina, mercado o servicio más próximo."
         )
 
-    # Los botones ahora buscan establecimientos físicos reales y limpios en Google Maps
+    # Los botones buscan establecimientos físicos reales y limpios en Google Maps
     botones = [
         {"texto": f"Ubicar centros en el mapa", "url": f"https://www.google.com/maps/search/{query_mapa_url}/@{lat or 14.6349},{lon or -90.5069},14z"}
     ]

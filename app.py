@@ -1,5 +1,6 @@
 import os
 import random
+import re
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 import stripe
@@ -65,6 +66,21 @@ def verificar_limite_diario():
         return False
         
     return True
+
+def limpiar_texto_para_voz(texto):
+    """
+    Elimina URLs, enlaces web y menciones de dominios para que el lector de voz 
+    nunca lea direcciones web en voz alta.
+    """
+    if not texto:
+        return ""
+    # Remueve URLs completas (http://, https://, www., etc.)
+    texto_limpio = re.sub(r'https?://\S+|www\.\S+', '', texto)
+    # Remueve menciones de dominios sueltos o nombres de la web tipo bolsilloguatemala.onrender.com
+    texto_limpio = re.sub(r'\b[a-zA-Z0-9-]+\.(com|org|net|uy|edu|gov|mil|biz|info|mobi|name|aero|jobs|museum)\b', '', texto_limpio, flags=re.IGNORECASE)
+    # Limpia espacios dobles o saltos sobrantes dejados por la limpieza
+    texto_limpio = re.sub(r'\s+', ' ', texto_limpio).strip()
+    return texto_limpio
 
 def extraer_lugar_para_mapa(consulta):
     """
@@ -233,6 +249,9 @@ def consultar():
             "3. Utilice el mapa interactivo para ubicar la oficina, mercado o servicio más próximo."
         )
 
+    # Texto exclusivo para que el sintetizador de voz (SpeechSynthesis) lea en voz alta de forma limpia, sin URLs ni webs
+    voz_texto_limpio = limpiar_texto_para_voz(cuerpo_respuesta)
+
     # Los botones buscan establecimientos físicos reales y limpios en Google Maps
     botones = [
         {"texto": f"Ubicar centros en el mapa", "url": f"https://www.google.com/maps/search/{query_mapa_url}/@{lat or 14.6349},{lon or -90.5069},14z"}
@@ -243,7 +262,12 @@ def consultar():
         historial.pop(0)
     session["historial"] = historial
 
-    return jsonify({"respuesta": cuerpo_respuesta, "botones": botones, "pausa_voz": True})
+    return jsonify({
+        "respuesta": cuerpo_respuesta, 
+        "voz_texto": voz_texto_limpio, 
+        "botones": botones, 
+        "pausa_voz": True
+    })
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

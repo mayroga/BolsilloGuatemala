@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BolsilloUruguay</title>
+    <title>BolsilloGuatemala</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <main class="container">
-        <h1 id="mainTitle">BolsilloUruguay</h1>
+        <h1 id="mainTitle">BolsilloGuatemala</h1>
         <p class="subtitle">{{ saludo_dinamico }}</p>
         
         <div id="permisoBox" class="permiso-box">
@@ -62,7 +62,7 @@
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (SpeechRecognition) {
                 recognition = new SpeechRecognition();
-                recognition.lang = 'es-UY';
+                recognition.lang = 'es-GT';
                 recognition.onresult = (e) => {
                     document.getElementById("userInput").value = e.results[0][0].transcript;
                     enviarConsulta();
@@ -135,7 +135,7 @@
                 window.speechSynthesis.cancel();
                 const texto = document.getElementById("textoRespuesta").innerText;
                 const utterance = new SpeechSynthesisUtterance(texto);
-                utterance.lang = 'es-UY';
+                utterance.lang = 'es-GT';
                 window.speechSynthesis.speak(utterance);
             }
         }

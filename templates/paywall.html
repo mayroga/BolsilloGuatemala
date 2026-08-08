@@ -29,6 +29,7 @@
             <button onclick="cerrarModal()">Cancelar</button>
         </div>
     </div>
+
 <script>
     // Módulo de Precarga Silenciosa para despertar el contenedor en Render sin bloquear la UI
     document.addEventListener("DOMContentLoaded", () => {
@@ -58,22 +59,37 @@
     }
     
     async function pagarStripe() {
-        const res = await fetch("/crear-checkout", { method: "POST" });
-        const data = await res.json();
-        if (data.url) window.location.href = data.url;
+        try {
+            const res = await fetch("/crear-checkout", { method: "POST" });
+            const data = await res.json();
+            if (data.url) {
+                window.location.href = data.url;
+            } else if (data.error) {
+                alert("Error al procesar el pago: " + data.error);
+            }
+        } catch (err) {
+            alert("No se pudo conectar con la pasarela de pagos. Verifique su conexión.");
+        }
     }
     
     async function loginDev() {
         const usuario = document.getElementById("devUser").value;
         const clave = document.getElementById("devPass").value;
-        const res = await fetch("/login-dev", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ usuario, clave })
-        });
-        const data = await res.json();
-        if (data.success) window.location.reload();
-        else alert("Credenciales incorrectas");
+        try {
+            const res = await fetch("/login-dev", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ usuario, clave })
+            });
+            const data = await res.json();
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert("Credenciales incorrectas");
+            }
+        } catch (err) {
+            alert("Error al intentar iniciar sesión de desarrollador.");
+        }
     }
 </script>
 </body>

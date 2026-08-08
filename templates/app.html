@@ -1,3 +1,4 @@
+<!-- INTERFAZ HTML5 Y JS ASÍNCRONO ANTI-CONGELAMIENTO (templates/app.html) -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -5,6 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BolsilloGuatemala</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s ease-in-out infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
 </head>
 <body>
     <main class="container">
@@ -12,46 +27,50 @@
         <p class="subtitle">{{ saludo_dinamico }}</p>
         
         <div id="permisoBox" class="permiso-box">
-            <p>Activa la ubicación para calcular opciones cercanas exactas a tu bolsillo y región.</p>
+            <p>Activa la ubicación para iniciar el motor de ejecución automatizada regional.</p>
             <button onclick="activarGPS()">Aceptar</button>
         </div>
 
-        <!-- 1. Alerta Temprana Proactiva (Valor Añadido al Ingresar) -->
-        <div id="alertaNacionalTránsito" class="alerta-proactiva-box" style="margin-bottom: 15px; padding: 15px; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; text-align: left;">
-            <h3 style="margin: 0 0 8px 0; font-size: 15px; color: #92400e;">⚠️ Aviso Proactivo de Tránsito y Multas en Guatemala</h3>
-            <p style="margin: 0 0 10px 0; font-size: 13px; color: #78350f; line-height: 1.4;">
-                Verifique de forma inmediata sus multas vigentes, estado de licencias y solvencias en la capital, Mixco, Villa Nueva y la red vial nacional para evitar sanciones.
-            </p>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <button onclick="consultarTramiteLocal('multas')" style="padding: 8px 12px; font-size: 12px; background-color: #d97706; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; flex: 1; min-width: 130px;">Verificar Multas</button>
-                <button onclick="consultarTramiteLocal('licencias')" style="padding: 8px 12px; font-size: 12px; background-color: #0284c7; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; flex: 1; min-width: 130px;">Gestionar Licencias</button>
+        <!-- Panel de Herramientas Automatizado con Input de DPI y Módulo SAT Integrado -->
+        <div id="panelHerramientas" class="panel-herramientas" style="display: none; margin-bottom: 15px; padding: 15px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; text-align: left;">
+            <h4 style="margin: 0 0 8px 0; font-size: 15px; color: #166534;">⚡ Motor Automatizado de Gestión Nacional</h4>
+            <p style="margin: 0 0 10px 0; font-size: 12px; color: #15803d;">Ingrese su número de DPI para realizar el barrido concurrente en bases de datos simultáneas:</p>
+            
+            <div style="margin-bottom: 12px;">
+                <input type="text" id="dpiInput" placeholder="Ingrese su número de DPI" autocomplete="off" style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
             </div>
-        </div>
 
-        <!-- 2. Contenedor del Panel de Herramientas Geolocalizado (Oculto por defecto hasta autorizar GPS) -->
-        <div id="panelHerramientas" class="panel-herramientas" style="display: none; margin-bottom: 15px; padding: 12px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; text-align: left;">
-            <h4 style="margin: 0 0 6px 0; font-size: 14px; color: #166534;">📍 Panel Rápido Geolocalizado</h4>
-            <p style="margin: 0 0 8px 0; font-size: 12px; color: #15803d;">Accesos directos optimizados según su ubicación en el territorio nacional:</p>
-            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                <button onclick="consultarTramiteLocal('general')" style="padding: 6px 10px; font-size: 11px; background-color: #16a34a; color: white; border: none; border-radius: 4px; cursor: pointer;">Guía Vial y SAT</button>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
+                <button id="btnMultas" onclick="ejecutarBarridoAutomatizado('multas')" style="padding: 9px 14px; font-size: 12px; background-color: #d97706; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; flex: 1; min-width: 150px;">Verificar Estado Nacional</button>
+                <button id="btnLicencia" onclick="ejecutarBarridoAutomatizado('licencias')" style="padding: 9px 14px; font-size: 12px; background-color: #0284c7; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; flex: 1; min-width: 150px;">Gestionar Licencia Maycom</button>
+            </div>
+
+            <!-- Submódulo C: Verificación Automática SAT & Guía Vial -->
+            <div id="moduloSatContainer" style="padding-top: 12px; border-top: 1px dashed #cbd5e1;">
+                <h4 style="margin: 0 0 6px 0; font-size: 14px; color: #1e3a8a;">🚗 Verificación Automática SAT & Guía Vial</h4>
+                <p style="margin: 0 0 8px 0; font-size: 12px; color: #475569;">Ingrese su DPI y número de placa para consultar en tiempo real el impuesto de circulación:</p>
+                
+                <div style="display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+                    <input type="text" id="satDpiInput" placeholder="Número de DPI" autocomplete="off" style="flex: 1; min-width: 130px; padding: 7px; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+                    <input type="text" id="satPlacaInput" placeholder="Número de Placa (Ej: P-123XYZ)" autocomplete="off" style="flex: 1; min-width: 130px; padding: 7px; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; text-transform: uppercase;">
+                </div>
+
+                <button id="btnSatConsulta" onclick="ejecutarVerificacionSat()" style="width: 100%; padding: 9px; font-size: 12px; background-color: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Verificar Estado SAT y Calcomanía</button>
             </div>
         </div>
 
         <div class="search-box" id="searchBox" style="display:none;">
-            <input type="text" id="userInput" placeholder="Ej: ¿Dónde comprar más barato o hacer un trámite?" autocomplete="off">
-            
+            <input type="text" id="userInput" placeholder="Ej: ¿Cómo optimizar costos en la canasta básica?" autocomplete="off">
             <button id="micBtn" class="mic-btn" onmousedown="iniciarEscucha()" onmouseup="detenerEscucha()" ontouchstart="iniciarEscucha()" ontouchend="detenerEscucha()">
                 🎙️ Mantén presionado para hablar
             </button>
-
             <button onclick="enviarConsulta()">Consultar</button>
         </div>
 
-        <!-- Pantalla de resultados inteligente y completa -->
+        <!-- Pantalla de Resultados Atómicos y Sintetizador de Voz es-GT -->
         <div id="resultado" class="result-box" style="display: none;">
             <div class="result-scroll">
                 <p id="textoRespuesta" style="white-space: pre-line;"></p>
-                <!-- Contenedor para múltiples botones de opciones y mapas -->
                 <div id="linksContainer" class="links-container"></div>
             </div>
             <button id="leerVozBtn" class="voice-read-btn" onclick="leerRespuestaEnVozAlta()">🔊 Escuchar respuesta</button>
@@ -77,7 +96,6 @@
             document.getElementById("permisoBox").style.display = "none";
             document.getElementById("searchBox").style.display = "flex";
             
-            // Despliegue asíncrono sin bloqueo de UI del panel geolocalizado
             requestAnimationFrame(() => {
                 const panel = document.getElementById("panelHerramientas");
                 if (panel) {
@@ -122,6 +140,133 @@
             }
         }
 
+        async function ejecutarBarridoAutomatizado(tipoTramite) {
+            const dpi = document.getElementById("dpiInput").value.trim();
+            if (!dpi) {
+                alert("Por favor, ingrese su número de DPI para continuar.");
+                return;
+            }
+
+            const btnId = tipoTramite === 'multas' ? 'btnMultas' : 'btnLicencia';
+            const btnElement = document.getElementById(btnId);
+            const textoOriginal = btnElement.innerHTML;
+
+            // Transición fluida a estado de carga sin congelar la UI
+            btnElement.innerHTML = `<span class="spinner"></span> Ejecutando barrido...`;
+            btnElement.disabled = true;
+
+            document.getElementById("resultado").style.display = "none";
+            document.getElementById("textoRespuesta").innerText = "";
+            document.getElementById("linksContainer").innerHTML = "";
+
+            try {
+                const response = await fetch("/tramites_locales", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ tipo: tipoTramite, dpi: dpi })
+                });
+
+                const data = await response.json();
+
+                // Actualización atómica del DOM
+                requestAnimationFrame(() => {
+                    document.getElementById("textoRespuesta").innerText = data.respuesta;
+
+                    if (data.botones && data.botones.length > 0) {
+                        const linksContainer = document.getElementById("linksContainer");
+                        data.botones.forEach(btnInfo => {
+                            const btn = document.createElement("a");
+                            btn.href = btnInfo.url;
+                            btn.target = "_blank";
+                            btn.className = "direct-link-btn";
+                            btn.innerText = btnInfo.texto;
+                            linksContainer.appendChild(btn);
+                        });
+                    }
+
+                    document.getElementById("resultado").style.display = "block";
+
+                    // Ejecución paralela de síntesis de voz en idioma es-GT
+                    if ('speechSynthesis' in window && data.voz_texto) {
+                        window.speechSynthesis.cancel();
+                        const utterance = new SpeechSynthesisUtterance(data.voz_texto);
+                        utterance.lang = 'es-GT';
+                        window.speechSynthesis.speak(utterance);
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error en motor automatizado:", error);
+            } finally {
+                btnElement.innerHTML = textoOriginal;
+                btnElement.disabled = false;
+            }
+        }
+
+        async function ejecutarVerificacionSat() {
+            const dpi = document.getElementById("satDpiInput").value.trim();
+            const placa = document.getElementById("satPlacaInput").value.trim();
+
+            if (!dpi || !placa) {
+                alert("Por favor, ingrese tanto el número de DPI como el número de placa.");
+                return;
+            }
+
+            const btnElement = document.getElementById("btnSatConsulta");
+            const textoOriginal = btnElement.innerHTML;
+
+            // Transición fluida a estado de carga (Spinner activo, interfaz no bloqueante)
+            btnElement.innerHTML = `<span class="spinner"></span> Consultando servidores SAT...`;
+            btnElement.disabled = true;
+
+            document.getElementById("resultado").style.display = "none";
+            document.getElementById("textoRespuesta").innerText = "";
+            document.getElementById("linksContainer").innerHTML = "";
+
+            try {
+                const response = await fetch("/tramites_sat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ dpi: dpi, placa: placa })
+                });
+
+                const data = await response.json();
+
+                // Renderizado atómico del DOM
+                requestAnimationFrame(() => {
+                    document.getElementById("textoRespuesta").innerText = data.respuesta;
+
+                    if (data.botones && data.botones.length > 0) {
+                        const linksContainer = document.getElementById("linksContainer");
+                        data.botones.forEach(btnInfo => {
+                            const btn = document.createElement("a");
+                            btn.href = btnInfo.url;
+                            btn.target = "_blank";
+                            btn.className = "direct-link-btn";
+                            btn.innerText = btnInfo.texto;
+                            linksContainer.appendChild(btn);
+                        });
+                    }
+
+                    document.getElementById("resultado").style.display = "block";
+
+                    // Disparador paralelo de síntesis de voz con locale estricto es-GT
+                    if ('speechSynthesis' in window && data.voz_texto) {
+                        window.speechSynthesis.cancel();
+                        const utterance = new SpeechSynthesisUtterance(data.voz_texto);
+                        utterance.lang = 'es-GT';
+                        window.speechSynthesis.speak(utterance);
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error en motor SAT:", error);
+            } finally {
+                btnElement.innerHTML = textoOriginal;
+                btnElement.disabled = false;
+            }
+        }
+
         async function enviarConsulta() {
             const inputField = document.getElementById("userInput");
             const mensaje = inputField.value;
@@ -139,10 +284,8 @@
 
             const data = await response.json();
             
-            // Muestra la respuesta completa estructurada paso a paso
             document.getElementById("textoRespuesta").innerText = data.respuesta;
 
-            // Inserta todos los botones de opciones y mapas correspondientes
             if (data.botones && data.botones.length > 0) {
                 const linksContainer = document.getElementById("linksContainer");
                 data.botones.forEach(btnInfo => {
@@ -160,53 +303,6 @@
             leerRespuestaEnVozAlta();
         }
 
-        // Petición asíncrona dedicada de alta velocidad hacia /tramites_locales
-        async function consultarTramiteLocal(tipoTramite) {
-            document.getElementById("resultado").style.display = "none";
-            document.getElementById("textoRespuesta").innerText = "Procesando consulta nacional...";
-            document.getElementById("linksContainer").innerHTML = "";
-
-            try {
-                const response = await fetch("/tramites_locales", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ tipo: tipoTramite })
-                });
-
-                const data = await response.json();
-
-                // Renderizado atómico del DOM optimizado para evitar congelamientos
-                requestAnimationFrame(() => {
-                    document.getElementById("textoRespuesta").innerText = data.respuesta;
-
-                    if (data.botones && data.botones.length > 0) {
-                        const linksContainer = document.getElementById("linksContainer");
-                        data.botones.forEach(btnInfo => {
-                            const btn = document.createElement("a");
-                            btn.href = btnInfo.url;
-                            btn.target = "_blank";
-                            btn.className = "direct-link-btn";
-                            btn.innerText = btnInfo.texto;
-                            linksContainer.appendChild(btn);
-                        });
-                    }
-
-                    document.getElementById("resultado").style.display = "block";
-                    
-                    // Ejecución paralela inmediata de síntesis de voz en idioma es-GT
-                    if ('speechSynthesis' in window && data.voz_texto) {
-                        window.speechSynthesis.cancel();
-                        const utterance = new SpeechSynthesisUtterance(data.voz_texto);
-                        utterance.lang = 'es-GT';
-                        window.speechSynthesis.speak(utterance);
-                    }
-                });
-
-            } catch (error) {
-                console.error("Error en consulta local de tránsito:", error);
-            }
-        }
-
         function leerRespuestaEnVozAlta() {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
@@ -219,7 +315,7 @@
 
         function compartirWhatsApp() {
             const texto = document.getElementById("textoRespuesta").innerText;
-            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent("Mira este dato útil y opciones de ahorro:\n\n" + texto)}`, "_blank");
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent("Resultado oficial - BolsilloGuatemala:\n\n" + texto)}`, "_blank");
         }
     </script>
 </body>

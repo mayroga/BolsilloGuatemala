@@ -11,15 +11,15 @@
     <div id="ventanaEnfoque" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#ffffff; z-index:9999; padding:20px; box-sizing:border-box; overflow-y:auto;">
         <div style="max-width:700px; margin:40px auto; background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:25px; box-shadow:0 10px 25px rgba(0,0,0,0.1);">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:12px; margin-bottom:20px;">
-                <h2 style="margin:0; font-size:20px; color:#1e293b;">Resultado Oficial Verificado</h2>
-                <button onclick="cerrarVentanaEnfoque()" style="background:#ef4444; color:white; border:none; padding:8px 14px; border-radius:6px; cursor:pointer; font-weight:bold;">Cerrar y Volver</button>
+                <h2 style="margin:0; font-size:20px; color:#1e293b;">Resultado Oficial Encontrado</h2>
+                <button onclick="cerrarVentanaEnfoque()" style="background:#ef4444; color:white; border:none; padding:8px 14px; border-radius:6px; cursor:pointer; font-weight:bold;">Cerrar Ventana</button>
             </div>
             <div id="contenidoVentanaEnfoque" style="font-size:16px; color:#334155; line-height:1.6; white-space:pre-wrap; margin-bottom:20px;"></div>
             <div id="botonesVentanaEnfoque" style="display:flex; gap:10px; flex-wrap:wrap;"></div>
         </div>
     </div>
 
-    <!-- Reloj de Cierre Automático flotante -->
+    <!-- Reloj de Cierre Automático a los 20 Minutos -->
     <div id="relojContenedor" style="position:fixed; top:10px; right:15px; background:#1e293b; color:#ffffff; padding:6px 12px; border-radius:20px; font-size:12px; font-weight:bold; z-index:998;">
         Cierre automático en: <span id="tiempoRestante">20:00</span>
     </div>
@@ -28,32 +28,32 @@
         <h1 id="secretClicker">BolsilloGuatemala</h1>
         <p class="subtitle">{{ saludo_dinamico }}</p>
         
-        <!-- Sección de Guía Vial y SAT con validación de DPI real de 13 dígitos -->
+        <!-- Sección de Guía Vial y SAT con búsqueda automática -->
         <section style="background:#f1f5f9; padding:15px; border-radius:8px; margin-bottom:20px;">
-            <h3 style="margin-top:0; font-size:16px; color:#0f172a;">Consulta Rápida Vehicular y SAT (DPI Obligatorio)</h3>
-            <p style="font-size:13px; color:#475569;">Ingrese su DPI real (13 números exactos) y número de placa para verificar:</p>
-            <input type="text" id="inputDpi" placeholder="DPI (13 dígitos exactos)" maxlength="13" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
+            <h3 style="margin-top:0; font-size:16px; color:#0f172a;">Revisión Automática de Vehículos y Multas</h3>
+            <p style="font-size:13px; color:#475569;">Escribe tu DPI (13 números exactos) y tu placa. El sistema buscará por ti en todos lados:</p>
+            <input type="text" id="inputDpi" placeholder="Tu número de DPI (13 dígitos)" maxlength="13" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
             <input type="text" id="inputPlaca" placeholder="Número de Placa (Ej. P-123ABC)" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
             <div style="display:flex; gap:10px;">
-                <button onclick="consultarSatVehiculos()" style="flex:1; background:#0284c7; color:white; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold;">Revisar SAT y Vehículo</button>
-                <button onclick="consultarTramitesLocales('multas')" style="flex:1; background:#0d9488; color:white; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold;">Ver Multas</button>
+                <button onclick="consultarSatVehiculos()" style="flex:1; background:#0284c7; color:white; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold;">Buscar en SAT</button>
+                <button onclick="consultarTramitesLocales('multas')" style="flex:1; background:#0d9488; color:white; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold;">Buscar Multas</button>
             </div>
         </section>
 
-        <!-- Caja de Consulta General de Asesoría -->
+        <!-- Caja de Consulta General -->
         <div style="margin-bottom:20px;">
-            <textarea id="inputConsulta" placeholder="Escriba su necesidad, trámite o consulta de ahorro..." style="width:100%; height:90px; padding:10px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box; font-family:inherit;"></textarea>
-            <button onclick="enviarConsultaGeneral()" style="width:100%; background:#16a34a; color:white; border:none; padding:12px; border-radius:6px; cursor:pointer; font-weight:bold; margin-top:8px;">Consultar Asesor</button>
+            <textarea id="inputConsulta" placeholder="Escribe aquí lo que necesitas buscar o resolver..." style="width:100%; height:90px; padding:10px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box; font-family:inherit;"></textarea>
+            <button onclick="enviarConsultaGeneral()" style="width:100%; background:#16a34a; color:white; border:none; padding:12px; border-radius:6px; cursor:pointer; font-weight:bold; margin-top:8px;">Preguntar al Asesor</button>
         </div>
 
-        <!-- Área de resultados estándar en pantalla -->
+        <!-- Resultados de fondo -->
         <div id="resultadoContenedor" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:15px; min-height:80px; margin-bottom:20px; white-space:pre-wrap; font-size:15px; color:#334155;">
-            Esperando su consulta para brindar la solución oficial...
+            Esperando tu consulta para buscar soluciones...
         </div>
         <div id="botonesContenedor" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;"></div>
 
         <!-- Botón de Salida Voluntaria -->
-        <button onclick="cerrarSesionVoluntaria()" style="background:#64748b; color:white; border:none; padding:10px 16px; border-radius:6px; cursor:pointer; width:100%; font-weight:bold;">Cerrar Sesión y Salir</button>
+        <button onclick="cerrarSesionVoluntaria()" style="background:#64748b; color:white; border:none; padding:10px 16px; border-radius:6px; cursor:pointer; width:100%; font-weight:bold;">Cerrar y Salir</button>
     </main>
 
 <script>
@@ -68,18 +68,18 @@
         
         if (tiempoRestanteSegundos <= 0) {
             clearInterval(relojIntervalo);
-            alert("El tiempo límite de 20 minutos ha finalizado por seguridad. Regresando al inicio.");
+            alert("El tiempo de 20 minutos terminó por seguridad. Volviendo al inicio.");
             window.location.href = "/";
         }
     }, 1000);
 
     function cerrarSesionVoluntaria() {
-        if (confirm("¿Desea cerrar la sesión y salir de la aplicación?")) {
+        if (confirm("¿Quieres salir de la aplicación?")) {
             window.location.href = "/";
         }
     }
 
-    // Funciones de Pantalla Despejada Tipo Ventana
+    // Funciones de Ventana Limpia de Enfoque (Esconde todo lo demás al dar la respuesta real)
     function abrirVentanaEnfoque(texto, botones) {
         document.getElementById("contenidoVentanaEnfoque").innerText = texto;
         let contenedorBotones = document.getElementById("botonesVentanaEnfoque");
@@ -103,11 +103,11 @@
         document.getElementById("ventanaEnfoque").style.display = "none";
     }
 
-    // Validación estricta de DPI real de 13 dígitos y ayuda al cliente en caso de faltar datos
+    // Validación sencilla de DPI real de 13 dígitos
     function validarDpiIngresado() {
         let dpi = document.getElementById("inputDpi").value.trim();
         if (dpi.length !== 13 || isNaN(dpi)) {
-            alert("Aviso importante: El número de DPI está incompleto o incorrecto. Por favor, asegúrese de ingresar exactamente los 13 dígitos numéricos reales de su documento para poder continuar.");
+            alert("Falta un pedacito o un número. Tu DPI debe tener exactamente 13 números para que el sistema pueda buscar.");
             document.getElementById("inputDpi").focus();
             return false;
         }
@@ -133,14 +133,12 @@
                 return;
             }
 
-            // Muestra el resultado de inmediato en la Pantalla Despejada tipo Ventana que esconde todo lo demás
+            // Abre la ventana limpia y esconde todo lo demás
             abrirVentanaEnfoque(data.respuesta, data.botones);
-            
-            // Actualiza también la vista general de fondo por si el usuario prefiere verla luego
             document.getElementById("resultadoContenedor").innerText = data.respuesta;
             renderizarBotones(data.botones);
         } catch (err) {
-            alert("Error de conexión al procesar la revisión SAT.");
+            alert("No se pudo conectar con el servidor.");
         }
     }
 
@@ -165,14 +163,14 @@
             document.getElementById("resultadoContenedor").innerText = data.respuesta;
             renderizarBotones(data.botones);
         } catch (err) {
-            alert("Error de conexión al consultar multas.");
+            alert("No se pudo conectar con el servidor.");
         }
     }
 
     async function enviarConsultaGeneral() {
         let mensaje = document.getElementById("inputConsulta").value.trim();
         if (!mensaje) {
-            alert("Por favor, escriba su consulta en el espacio correspondiente.");
+            alert("Escribe qué deseas consultar.");
             return;
         }
 
@@ -196,12 +194,11 @@
             });
             let data = await res.json();
             
-            // Ventana despejada para mostrar la respuesta limpia al instante
             abrirVentanaEnfoque(data.respuesta, data.botones);
             document.getElementById("resultadoContenedor").innerText = data.respuesta;
             renderizarBotones(data.botones);
         } catch (err) {
-            alert("Error al procesar la consulta con el asesor.");
+            alert("Error al procesar la consulta.");
         }
     }
 

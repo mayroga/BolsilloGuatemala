@@ -1,27 +1,134 @@
-body { font-family: Arial, sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; height: 100vh; box-sizing: border-box; }
-.container { background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; }
-h1 { font-size: 24px; color: #1a365d; margin-bottom: 5px; }
-.subtitle { font-size: 14px; color: #666; margin-bottom: 20px; }
-.permiso-box { background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 20px; }
-.permiso-box p { font-size: 14px; color: #333; margin-bottom: 10px; }
-.search-box { display: flex; flex-direction: column; gap: 10px; }
-input[type="text"], input[type="password"] { padding: 12px; font-size: 15px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; width: 100%; box-sizing: border-box; }
-input:focus { border-color: #2563eb; }
-button, .pay-btn { padding: 12px; font-size: 15px; background-color: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
-button:hover, .pay-btn:hover { background-color: #1d4ed8; }
-.mic-btn { background-color: #d97706; }
-.mic-btn:hover { background-color: #b45309; }
+/* Estilos generales y limpios para BolsilloGuatemala */
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f8fafc;
+    color: #1e293b;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
 
-.result-box { margin-top: 15px; padding: 12px; background: #f8fafc; border-left: 4px solid #2563eb; border-radius: 4px; text-align: left; display: flex; flex-direction: column; gap: 10px; }
-.result-scroll { max-height: 160px; overflow-y: auto; padding-right: 5px; display: flex; flex-direction: column; gap: 8px; }
-.result-scroll p { font-size: 14px; line-height: 1.4; margin: 0; color: #1e293b; }
+.container {
+    background: #ffffff;
+    width: 100%;
+    max-width: 500px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-sizing: border-box;
+    margin: 15px;
+}
 
-/* Botones directos a tiendas y Google Maps */
-.links-container { display: flex; flex-direction: column; gap: 6px; margin-top: 5px; }
-.direct-link-btn { display: block; background-color: #0284c7; color: white; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: bold; text-align: center; }
-.direct-link-btn:hover { background-color: #0369a1; }
+h1 {
+    font-size: 24px;
+    color: #0f172a;
+    margin-top: 0;
+    margin-bottom: 5px;
+    text-align: center;
+    cursor: pointer;
+}
 
-.voice-read-btn { background-color: #0d9488; }
-.voice-read-btn:hover { background-color: #0f766e; }
-.wa-btn { background-color: #25d366; }
-.wa-btn:hover { background-color: #1ebd59; }
+.subtitle {
+    font-size: 14px;
+    color: #64748b;
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.pay-desc {
+    font-size: 15px;
+    color: #334155;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.pay-btn {
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    padding: 14px;
+    width: 100%;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.pay-btn:hover {
+    background-color: #1d4ed8;
+}
+
+input[type="text"],
+input[type="password"],
+textarea {
+    font-family: inherit;
+    font-size: 14px;
+    color: #1e293b;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+textarea:focus {
+    border-color: #2563eb !important;
+}
+
+/* Estilos para modales de desarrollador */
+.modal {
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 350px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    text-align: center;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    color: #1e293b;
+}
+
+.modal-content input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    box-sizing: border-box;
+}
+
+.modal-content button {
+    background-color: #0284c7;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    margin: 5px;
+}
+
+.modal-content button:last-child {
+    background-color: #64748b;
+}

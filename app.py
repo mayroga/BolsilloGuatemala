@@ -159,7 +159,103 @@ def login_dev():
         session["historial"] = []
         return jsonify({"success": True})
     return jsonify({"success": False}), 401
+# --- MÓDULO DE PRECARGA Y ASISTENCIA LOCAL DE ALTA VELOCIDAD ---
 
+@app.route("/ping", methods=["GET"])
+def ping_server():
+    """
+    Ruta pública ultrarrápida para despertar el contenedor en Render
+    en segundo plano desde el paywall, eliminando la latencia inicial.
+    """
+    return jsonify({"status": "ready"}), 200
+
+# Diccionario estático unificado para consulta masiva de tránsito, multas y licencias en Guatemala
+TRAMITES_TRANSITO_GUATEMALA = {
+    "multas": {
+        "respuesta": (
+            "BolsilloGuatemala - https://bolsilloguatemala.onrender.com\n\n"
+            "Guía unificada de consulta y verificación de multas de tránsito en todo el territorio de Guatemala:\n\n"
+            "1. Municipalidad de Guatemala (Capital): Ingrese al portal oficial Emixtra o MuniGuate con el número de placa o NIT del propietario para verificar y pagar multas vigentes.\n"
+            "2. Mixco y Villa Nueva: Consulte directamente en las plataformas electrónicas de las Policías Municipales de Tránsito (PMT) de Mixco y Villa Nueva digitando su número de placa.\n"
+            "3. Resto de Departamentos y Rutas Nacionales: Verifique las multas emitidas por el Departamento de Tránsito de la Policía Nacional Civil (PNC) a través de su portal oficial en línea o agencias bancarias autorizadas.\n"
+            "4. Pago y Solvencia: Los pagos pueden realizarse en la red de banca SAT, agencias bancarias del sistema o pasarelas habilitadas."
+        ),
+        "botones": [
+            {"texto": "Consultar MuniGuate / Emixtra", "url": "https://www.muniguate.com"},
+            {"texto": "Consultar Tránsito PNC Guatemala", "url": "https://www.transito.gob.gt"},
+            {"texto": "Portal SAT Guatemala", "url": "https://portal.sat.gob.gt"}
+        ]
+    },
+    "licencias": {
+        "respuesta": (
+            "BolsilloGuatemala - https://bolsilloguatemala.onrender.com\n\n"
+            "Guía unificada para gestión de licencias de conducir y emisión en Guatemala:\n\n"
+            "1. Renovación y Primera Vez: El trámite se gestiona oficialmente a través de Maycom, operador autorizado por el Departamento de Tránsito de la PNC.\n"
+            "2. Requisitos: Presentar factura de pago realizada en bancos del sistema, examen de la vista aprobado en centros autorizados, DPI vigente y certificado de manejo de escuela acreditada si es primera vez.\n"
+            "3. Citas: Programe su cita de manera directa en el sitio web oficial de Maycom para evitar intermediarios y cobros extras."
+        ),
+        "botones": [
+            {"texto": "Sitio Oficial Maycom (Citas y Licencias)", "url": "https://www.maycom.com.gt"},
+            {"texto": "Departamento de Tránsito PNC", "url": "https://www.transito.gob.gt"}
+        ]
+    },
+    "general": {
+        "respuesta": (
+            "BolsilloGuatemala - https://bolsilloguatemala.onrender.com\n\n"
+            "Orientación general de tránsito, movilidad y transporte en Guatemala:\n\n"
+            "1. Verificación vehicular: Revise el estado de su tarjeta de circulación y calcomanías en el portal tributario de la SAT.\n"
+            "2. Normativa de circulación: Conduzca portando licencia vigente, tarjeta de circulación, triángulos de emergencia y equipo básico de seguridad.\n"
+            "3. Asistencia vial: Para emergencias en rutas centroamericanas o del país, comuníquese a los números de emergencia de provial o los cuerpos de socorro locales."
+        ),
+        "botones": [
+            {"texto": "Portal SAT Vehículos", "url": "https://portal.sat.gob.gt"},
+            {"texto": "Ubicar centros y dependencias en el mapa", "url": "https://www.google.com/maps/search/PMT+agencia+de+transito+Guatemala/@14.6349,-90.5069,14z"}
+        ]
+    }
+}
+
+def limpiar_texto_para_voz(texto):
+    """
+    Función Helper de Audio Inmediata:
+    Remueve asteriscos (*), numerales (#), guiones de viñetas (-) y URLs completas
+    para que la síntesis de voz nativa procese un texto plano puro y fluido.
+    """
+    if not texto:
+        return ""
+    # Elimina URLs completas y dominios web
+    texto_limpio = re.sub(r'https?://\S+|www\.\S+', '', texto)
+    texto_limpio = re.sub(r'\b[a-zA-Z0-9-]+\.(com|org|net|uy|edu|gov|mil|biz|info|mobi|name|aero|jobs|museum)\b', '', texto_limpio, flags=re.IGNORECASE)
+    # Elimina caracteres de formato Markdown (*, #, guiones de lista sueltos)
+    texto_limpio = re.sub(r'[*#\-]', ' ', texto_limpio)
+    # Limpia espacios dobles y saltos sobrantes
+    texto_limpio = re.sub(r'\s+', ' ', texto_limpio).strip()
+    return texto_limpio
+
+@app.route("/tramites_locales", methods=["POST"])
+def tramites_locales():
+    """
+    Ruta centralizada ultrarrápida protegida para resolver de forma instantánea 
+    las consultas de tránsito, multas y licencias sin sobrecargar la IA.
+    """
+    if not verificar_acceso_pagado():
+        return jsonify({"respuesta": f"BolsilloGuatemala - {URL_BASE_OFICIAL}\n\nSu acceso de asesoría ha concluido. Le sugerimos renovar su plan para continuar recibiendo orientación."}), 403
+
+    data = request.get_json() or {}
+    tipo = data.get("tipo", "general").lower().strip()
+
+    # Selecciona la estructura adecuada según la categoría solicitada
+    contenido = TRAMITES_TRANSITO_GUATEMALA.get(tipo, TRAMITES_TRANSITO_GUATEMALA["general"])
+    
+    cuerpo_respuesta = contenido["respuesta"]
+    botones = contenido["botones"]
+    voz_texto_limpio = limpiar_texto_para_voz(cuerpo_respuesta)
+
+    return jsonify({
+        "respuesta": cuerpo_respuesta,
+        "voz_texto": voz_texto_limpio,
+        "botones": botones,
+        "pausa_voz": True
+    })
 @app.route("/consultar", methods=["POST"])
 def consultar():
     if not verificar_acceso_pagado():

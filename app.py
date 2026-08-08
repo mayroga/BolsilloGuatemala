@@ -23,8 +23,7 @@ api_key_gemini = os.environ.get("GEMINI_API_KEY")
 gemini_client = genai.Client(api_key=api_key_gemini) if api_key_gemini else None
 
 api_key_openai = os.environ.get("OPENAI_API_KEY")
-openai_client = OpenAI(api_key=api_key_openai) if openai_client else None
-
+openai_client = OpenAI(api_key=api_key_openai) if api_key_openai else None
 SALUDOS_INICIALES = [
     "BolsilloGuatemala - Qué necesidad resolvemos hoy?",
     "BolsilloGuatemala - En qué te puedo orientar?",

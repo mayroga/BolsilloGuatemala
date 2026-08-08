@@ -29,34 +29,52 @@
             <button onclick="cerrarModal()">Cancelar</button>
         </div>
     </div>
+<script>
+    // Módulo de Precarga Silenciosa para despertar el contenedor en Render sin bloquear la UI
+    document.addEventListener("DOMContentLoaded", () => {
+        if (navigator.onLine) {
+            fetch("/ping", { method: "GET", mode: "cors", cache: "no-store" })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Estado de infraestructura:", data.status);
+                })
+                .catch(error => {
+                    // Falla silenciosa para no interrumpir la experiencia visual del usuario en el paywall
+                });
+        }
+    });
 
-    <script>
-        let clicks = 0;
-        document.getElementById("secretClicker").addEventListener("click", () => {
-            clicks++;
-            if (clicks === 5) {
-                document.getElementById("devModal").style.display = "block";
-                clicks = 0;
-            }
+    let clicks = 0;
+    document.getElementById("secretClicker").addEventListener("click", () => {
+        clicks++;
+        if (clicks === 5) {
+            document.getElementById("devModal").style.display = "block";
+            clicks = 0;
+        }
+    });
+    
+    function cerrarModal() { 
+        document.getElementById("devModal").style.display = "none"; 
+    }
+    
+    async function pagarStripe() {
+        const res = await fetch("/crear-checkout", { method: "POST" });
+        const data = await res.json();
+        if (data.url) window.location.href = data.url;
+    }
+    
+    async function loginDev() {
+        const usuario = document.getElementById("devUser").value;
+        const clave = document.getElementById("devPass").value;
+        const res = await fetch("/login-dev", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ usuario, clave })
         });
-        function cerrarModal() { document.getElementById("devModal").style.display = "none"; }
-        async function pagarStripe() {
-            const res = await fetch("/crear-checkout", { method: "POST" });
-            const data = await res.json();
-            if (data.url) window.location.href = data.url;
-        }
-        async function loginDev() {
-            const usuario = document.getElementById("devUser").value;
-            const clave = document.getElementById("devPass").value;
-            const res = await fetch("/login-dev", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ usuario, clave })
-            });
-            const data = await res.json();
-            if (data.success) window.location.reload();
-            else alert("Credenciales incorrectas");
-        }
-    </script>
+        const data = await res.json();
+        if (data.success) window.location.reload();
+        else alert("Credenciales incorrectas");
+    }
+</script>
 </body>
 </html>

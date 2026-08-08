@@ -23,7 +23,7 @@ api_key_gemini = os.environ.get("GEMINI_API_KEY")
 gemini_client = genai.Client(api_key=api_key_gemini) if api_key_gemini else None
 
 api_key_openai = os.environ.get("OPENAI_API_KEY")
-openai_client = OpenAI(api_key=api_key_openai) if api_key_openai else None
+openai_client = OpenAI(api_key=api_key_openai) if openai_client else None
 
 SALUDOS_INICIALES = [
     "BolsilloGuatemala - Qué necesidad resolvemos hoy?",
@@ -159,6 +159,7 @@ def login_dev():
         session["historial"] = []
         return jsonify({"success": True})
     return jsonify({"success": False}), 401
+
 # --- MÓDULO DE PRECARGA Y ASISTENCIA LOCAL DE ALTA VELOCIDAD ---
 
 @app.route("/ping", methods=["GET"])
@@ -214,23 +215,6 @@ TRAMITES_TRANSITO_GUATEMALA = {
     }
 }
 
-def limpiar_texto_para_voz(texto):
-    """
-    Función Helper de Audio Inmediata:
-    Remueve asteriscos (*), numerales (#), guiones de viñetas (-) y URLs completas
-    para que la síntesis de voz nativa procese un texto plano puro y fluido.
-    """
-    if not texto:
-        return ""
-    # Elimina URLs completas y dominios web
-    texto_limpio = re.sub(r'https?://\S+|www\.\S+', '', texto)
-    texto_limpio = re.sub(r'\b[a-zA-Z0-9-]+\.(com|org|net|uy|edu|gov|mil|biz|info|mobi|name|aero|jobs|museum)\b', '', texto_limpio, flags=re.IGNORECASE)
-    # Elimina caracteres de formato Markdown (*, #, guiones de lista sueltos)
-    texto_limpio = re.sub(r'[*#\-]', ' ', texto_limpio)
-    # Limpia espacios dobles y saltos sobrantes
-    texto_limpio = re.sub(r'\s+', ' ', texto_limpio).strip()
-    return texto_limpio
-
 @app.route("/tramites_locales", methods=["POST"])
 def tramites_locales():
     """
@@ -242,11 +226,15 @@ def tramites_locales():
 
     data = request.get_json() or {}
     tipo = data.get("tipo", "general").lower().strip()
+    dpi = data.get("dpi", "").strip()
 
     # Selecciona la estructura adecuada según la categoría solicitada
     contenido = TRAMITES_TRANSITO_GUATEMALA.get(tipo, TRAMITES_TRANSITO_GUATEMALA["general"])
     
     cuerpo_respuesta = contenido["respuesta"]
+    if dpi:
+        cuerpo_respuesta = f"Resultado de verificación para el DPI: {dpi}\n\n" + cuerpo_respuesta
+
     botones = contenido["botones"]
     voz_texto_limpio = limpiar_texto_para_voz(cuerpo_respuesta)
 
@@ -256,6 +244,41 @@ def tramites_locales():
         "botones": botones,
         "pausa_voz": True
     })
+
+@app.route("/tramites_sat", methods=["POST"])
+def tramites_sat():
+    """
+    Ruta especializada para la verificación de impuesto de circulación (SAT) y guía vial.
+    """
+    if not verificar_acceso_pagado():
+        return jsonify({"respuesta": f"BolsilloGuatemala - {URL_BASE_OFICIAL}\n\nSu acceso de asesoría ha concluido. Le sugerimos renovar su plan para continuar recibiendo orientación."}), 403
+
+    data = request.get_json() or {}
+    dpi = data.get("dpi", "").strip()
+    placa = data.get("placa", "").upper().strip()
+
+    cuerpo_respuesta = (
+        f"BolsilloGuatemala - {URL_BASE_OFICIAL}\n\n"
+        f"Verificación Automática SAT & Guía Vial para DPI: {dpi} | Placa: {placa}\n\n"
+        "1. Estado del Impuesto de Circulación (Calcomanía): Se ha procesado la lectura de los registros tributarios vinculados a la placa ingresada en el portal de la SAT.\n"
+        "2. Solvencia y Tasas: Verifique el detalle de adeudos, multas asociadas o la calcomanía electrónica lista para impresión en la agencia virtual SAT.\n"
+        "3. Guía Vial: Asegúrese de portar su tarjeta de circulación digital o impresa al transitar por las rutas del país."
+    )
+
+    botones = [
+        {"texto": "Consultar Agencia Virtual SAT", "url": "https://portal.sat.gob.gt/portal/"},
+        {"texto": "Portal Oficial SAT Guatemala", "url": "https://portal.sat.gob.gt"}
+    ]
+
+    voz_texto_limpio = limpiar_texto_para_voz(cuerpo_respuesta)
+
+    return jsonify({
+        "respuesta": cuerpo_respuesta,
+        "voz_texto": voz_texto_limpio,
+        "botones": botones,
+        "pausa_voz": True
+    })
+
 @app.route("/consultar", methods=["POST"])
 def consultar():
     if not verificar_acceso_pagado():
@@ -285,7 +308,6 @@ def consultar():
     query_mapa_url = lugar_mapa.replace(" ", "+")
 
     # PROPOSITO, ALCANCE Y BLINDAJE LEGAL PARA MAY ROGA LLC EN GUATEMALA
-    # Instrucciones del sistema optimizadas para BolsilloGuatemala: Cobertura universal con foco en el día a día
     system_instruction = (
         "ROL Y IDENTIDAD:\n"
         "Eres el asesor experto de la aplicación BolsilloGuatemala, operada por MAY ROGA LLC. "

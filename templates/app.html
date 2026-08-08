@@ -16,6 +16,27 @@
             <button onclick="activarGPS()">Aceptar</button>
         </div>
 
+        <!-- 1. Alerta Temprana Proactiva (Valor Añadido al Ingresar) -->
+        <div id="alertaNacionalTránsito" class="alerta-proactiva-box" style="margin-bottom: 15px; padding: 15px; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; text-align: left;">
+            <h3 style="margin: 0 0 8px 0; font-size: 15px; color: #92400e;">⚠️ Aviso Proactivo de Tránsito y Multas en Guatemala</h3>
+            <p style="margin: 0 0 10px 0; font-size: 13px; color: #78350f; line-height: 1.4;">
+                Verifique de forma inmediata sus multas vigentes, estado de licencias y solvencias en la capital, Mixco, Villa Nueva y la red vial nacional para evitar sanciones.
+            </p>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button onclick="consultarTramiteLocal('multas')" style="padding: 8px 12px; font-size: 12px; background-color: #d97706; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; flex: 1; min-width: 130px;">Verificar Multas</button>
+                <button onclick="consultarTramiteLocal('licencias')" style="padding: 8px 12px; font-size: 12px; background-color: #0284c7; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; flex: 1; min-width: 130px;">Gestionar Licencias</button>
+            </div>
+        </div>
+
+        <!-- 2. Contenedor del Panel de Herramientas Geolocalizado (Oculto por defecto hasta autorizar GPS) -->
+        <div id="panelHerramientas" class="panel-herramientas" style="display: none; margin-bottom: 15px; padding: 12px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; text-align: left;">
+            <h4 style="margin: 0 0 6px 0; font-size: 14px; color: #166534;">📍 Panel Rápido Geolocalizado</h4>
+            <p style="margin: 0 0 8px 0; font-size: 12px; color: #15803d;">Accesos directos optimizados según su ubicación en el territorio nacional:</p>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <button onclick="consultarTramiteLocal('general')" style="padding: 6px 10px; font-size: 11px; background-color: #16a34a; color: white; border: none; border-radius: 4px; cursor: pointer;">Guía Vial y SAT</button>
+            </div>
+        </div>
+
         <div class="search-box" id="searchBox" style="display:none;">
             <input type="text" id="userInput" placeholder="Ej: ¿Dónde comprar más barato o hacer un trámite?" autocomplete="off">
             
@@ -55,6 +76,15 @@
         function finalizarGPS() {
             document.getElementById("permisoBox").style.display = "none";
             document.getElementById("searchBox").style.display = "flex";
+            
+            // Despliegue asíncrono sin bloqueo de UI del panel geolocalizado
+            requestAnimationFrame(() => {
+                const panel = document.getElementById("panelHerramientas");
+                if (panel) {
+                    panel.style.display = "block";
+                }
+            });
+
             inicializarVoz();
         }
 
@@ -128,6 +158,53 @@
             document.getElementById("resultado").style.display = "block";
             inputField.value = ""; 
             leerRespuestaEnVozAlta();
+        }
+
+        // Petición asíncrona dedicada de alta velocidad hacia /tramites_locales
+        async function consultarTramiteLocal(tipoTramite) {
+            document.getElementById("resultado").style.display = "none";
+            document.getElementById("textoRespuesta").innerText = "Procesando consulta nacional...";
+            document.getElementById("linksContainer").innerHTML = "";
+
+            try {
+                const response = await fetch("/tramites_locales", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ tipo: tipoTramite })
+                });
+
+                const data = await response.json();
+
+                // Renderizado atómico del DOM optimizado para evitar congelamientos
+                requestAnimationFrame(() => {
+                    document.getElementById("textoRespuesta").innerText = data.respuesta;
+
+                    if (data.botones && data.botones.length > 0) {
+                        const linksContainer = document.getElementById("linksContainer");
+                        data.botones.forEach(btnInfo => {
+                            const btn = document.createElement("a");
+                            btn.href = btnInfo.url;
+                            btn.target = "_blank";
+                            btn.className = "direct-link-btn";
+                            btn.innerText = btnInfo.texto;
+                            linksContainer.appendChild(btn);
+                        });
+                    }
+
+                    document.getElementById("resultado").style.display = "block";
+                    
+                    // Ejecución paralela inmediata de síntesis de voz en idioma es-GT
+                    if ('speechSynthesis' in window && data.voz_texto) {
+                        window.speechSynthesis.cancel();
+                        const utterance = new SpeechSynthesisUtterance(data.voz_texto);
+                        utterance.lang = 'es-GT';
+                        window.speechSynthesis.speak(utterance);
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error en consulta local de tránsito:", error);
+            }
         }
 
         function leerRespuestaEnVozAlta() {

@@ -1,4 +1,3 @@
-<!-- templates/paywall.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -11,7 +10,7 @@
     <main class="container">
         <h1 id="secretClicker">BolsilloGuatemala</h1>
         <p class="subtitle">Ahorro y soluciones prácticas al instante</p>
-        <p class="pay-desc">Acceso Garantizado por <strong>$2.99 USD</strong>.</p>
+        <p class="pay-desc">Obtén acceso completo por solo <strong>$2.99 USD</strong>.</p>
         <button class="pay-btn" onclick="pagarStripe()">Pagar Acceso ($2.99)</button>
         
         <!-- AVISO LEGAL VISIBLE EN EL PAYWALL -->
@@ -30,6 +29,7 @@
             <button onclick="cerrarModal()">Cancelar</button>
         </div>
     </div>
+
 <script>
     // Módulo de Precarga Silenciosa para despertar el contenedor en Render sin bloquear la UI
     document.addEventListener("DOMContentLoaded", () => {
